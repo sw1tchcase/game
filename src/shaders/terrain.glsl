@@ -14,12 +14,18 @@ uniform terrain_vs_params{
   vec3 cam_pos;
 };
 
+uniform texture2D tex;
+uniform sampler smp;
+
 void main() {
     int terrain_size = 8;
 
     vec2 offset = vec2(gl_InstanceIndex%terrain_size, gl_InstanceIndex/terrain_size);
+    vec2 pos = vec2(position.x + offset.x, position.y + offset.y);
 
-    gl_Position = mvp * vec4(position.x + offset.x, 0, position.y + offset.y,1);
+    float height = texture(sampler2D(tex,smp), vec2(pos.x/8, pos.y/8)).r;
+
+    gl_Position = mvp * vec4(pos.x, height, pos.y, 1);
 
     frag_pos = vec3(position.x +  offset.x,0,position.y + offset.y);
     view_pos = cam_pos;
