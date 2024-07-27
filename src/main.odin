@@ -4,6 +4,9 @@ import "base:runtime"
 
 import "core:fmt"
 
+import "core:math"
+import "core:math/linalg"
+
 import skl_app "shared:sokol/app"
 import skl_gfx "shared:sokol/gfx"
 import skl_glue "shared:sokol/glue"
@@ -17,7 +20,28 @@ pipeline: skl_gfx.Pipeline
 bindings: skl_gfx.Bindings
 pass_action: skl_gfx.Pass_Action
 
+uniform: shd.Triangle_Vs_Params
+
 vertices := [?][3]f32{{0, 0.5, 0}, {0.5, -0.5, 0}, {-0.5, -0.5, 0}}
+
+Camera :: struct {
+	projection, view:  linalg.Matrix4f32,
+	position, loot_at: [3]f32,
+}
+
+camera: Camera
+
+make_camera :: proc(fov, aspect: f32, position, look_at: [3]f32) {
+	camera.projection = linalg.matrix4_perspective_f32(fov, aspect, 0.1, 100)
+	camera.view = linalg.matrix4_look_at_f32(position, look_at, {0, 1, 0})
+	camera.position = position
+	camera.loot_at = look_at
+}
+
+set_position_camera :: proc(position: [3]f32) {
+	camera.position = position
+	camera.view = linalg.matrix4_look_at_f32(position, camera.loot_at, {0, 1, 0})
+}
 
 main :: proc() {
 	app_desc: skl_app.Desc
@@ -50,13 +74,23 @@ init :: proc "c" () {
 		colors = {0 = {load_action = .CLEAR, clear_value = BACKGROUND_COLOUR}},
 	}
 
+	make_camera(1.5, 800 / 600, {0, 0, 1}, {0, 0, 0})
 }
 
 frame :: proc "c" () {
 	context = runtime.default_context()
+
+	@(static)
+	cam_roatation: f32 = 0
+
+	cam_roatation += 0.01
+	set_position_camera({math.sin_f32(cam_roatation), 0, math.cos_f32(cam_roatation)})
+	uniform.mvp = camera.projection * camera.view
+
 	skl_gfx.begin_pass({action = pass_action, swapchain = skl_glue.swapchain()})
 	skl_gfx.apply_pipeline(pipeline)
 	skl_gfx.apply_bindings(bindings)
+	skl_gfx.apply_uniforms(.VS, shd.ATTR_vs_position, {ptr = &uniform, size = size_of(uniform)})
 	skl_gfx.draw(0, len(vertices), 1)
 	skl_gfx.end_pass()
 	skl_gfx.commit()
