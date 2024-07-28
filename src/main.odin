@@ -16,12 +16,15 @@ import shd "shaders"
 
 BACKGROUND_COLOUR :: skl_gfx.Color{0.1, 0.1, 0.1, 1}
 
+@(private = "file")
 pipeline: skl_gfx.Pipeline
+@(private = "file")
 bindings: skl_gfx.Bindings
 pass_action: skl_gfx.Pass_Action
 
 uniform: shd.Triangle_Vs_Params
 
+@(private = "file")
 vertices := [?][3]f32{{0, 0.5, 0}, {0.5, -0.5, 0}, {-0.5, -0.5, 0}}
 
 main :: proc() {
@@ -49,6 +52,8 @@ init :: proc "c" () {
 	pip_desc.layout.attrs = {
 		shd.ATTR_vs_position = {format = .FLOAT3},
 	}
+	pip_desc.depth.write_enabled = true
+	pip_desc.depth.compare = .LESS_EQUAL
 	pipeline = skl_gfx.make_pipeline(pip_desc)
 
 	pass_action = {
@@ -56,6 +61,8 @@ init :: proc "c" () {
 	}
 
 	make_camera(1.5, 800 / 600, {0, 0, 1}, {0, 0, 0})
+
+	init_terrain()
 }
 
 frame :: proc "c" () {
@@ -94,6 +101,7 @@ frame :: proc "c" () {
 	skl_gfx.apply_bindings(bindings)
 	skl_gfx.apply_uniforms(.VS, shd.ATTR_vs_position, {ptr = &uniform, size = size_of(uniform)})
 	skl_gfx.draw(0, len(vertices), 1)
+	draw_terrain()
 	skl_gfx.end_pass()
 	skl_gfx.commit()
 }
