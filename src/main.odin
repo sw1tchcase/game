@@ -24,25 +24,6 @@ uniform: shd.Triangle_Vs_Params
 
 vertices := [?][3]f32{{0, 0.5, 0}, {0.5, -0.5, 0}, {-0.5, -0.5, 0}}
 
-Camera :: struct {
-	projection, view:  linalg.Matrix4f32,
-	position, loot_at: [3]f32,
-}
-
-camera: Camera
-
-make_camera :: proc(fov, aspect: f32, position, look_at: [3]f32) {
-	camera.projection = linalg.matrix4_perspective_f32(fov, aspect, 0.1, 100)
-	camera.view = linalg.matrix4_look_at_f32(position, look_at, {0, 1, 0})
-	camera.position = position
-	camera.loot_at = look_at
-}
-
-set_position_camera :: proc(position: [3]f32) {
-	camera.position = position
-	camera.view = linalg.matrix4_look_at_f32(position, camera.loot_at, {0, 1, 0})
-}
-
 main :: proc() {
 	app_desc: skl_app.Desc
 	app_desc.width = 800
@@ -85,6 +66,7 @@ frame :: proc "c" () {
 
 	cam_roatation += 0.01
 	set_position_camera({math.sin_f32(cam_roatation), 0, math.cos_f32(cam_roatation)})
+	update_camera()
 	uniform.mvp = camera.projection * camera.view
 
 	skl_gfx.begin_pass({action = pass_action, swapchain = skl_glue.swapchain()})
