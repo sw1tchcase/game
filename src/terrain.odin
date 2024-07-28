@@ -34,6 +34,7 @@ init_terrain :: proc() {
 
 draw_terrain :: proc() {
 	uniform.mvp = camera.projection * camera.view
+	uniform.cam_pos = camera.position
 	skl_gfx.apply_pipeline(pipeline)
 	skl_gfx.apply_bindings(bindings)
 	skl_gfx.apply_uniforms(.VS, 0, {ptr = &uniform, size = size_of(uniform)})
