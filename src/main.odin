@@ -64,8 +64,11 @@ frame :: proc "c" () {
 	@(static)
 	cam_roatation: f32 = 0
 
-	cam_roatation += 0.01
-	set_position_camera({math.sin_f32(cam_roatation), 0, math.cos_f32(cam_roatation)})
+	if is_key_down(.W) do set_position_camera(camera.position - {0, 0, 0.1})
+	if is_key_down(.A) do set_position_camera(camera.position - {0.1, 0, 0})
+	if is_key_down(.S) do set_position_camera(camera.position + {0, 0, 0.1})
+	if is_key_down(.D) do set_position_camera(camera.position + {0.1, 0, 0})
+
 	update_camera()
 	uniform.mvp = camera.projection * camera.view
 
@@ -79,6 +82,8 @@ frame :: proc "c" () {
 }
 
 event :: proc "c" (event: ^skl_app.Event) {
+	context = runtime.default_context()
+	event_handler(event)
 }
 
 cleanup :: proc "c" () {
