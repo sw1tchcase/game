@@ -10,16 +10,23 @@ Key_State :: bit_set[enum {
 @(private)
 key_states: #sparse[skl_app.Keycode]Key_State
 
+mouse: struct {
+	change:   [2]f32,
+	position: [2]f32,
+}
+
 event_handler :: proc(event: ^skl_app.Event) {
 	#partial switch event.type {
 	case .KEY_DOWN:
 		key_states[event.key_code] += {.Down}
-
 	case .KEY_UP:
 		if .Down in key_states[event.key_code] {
 			key_states[event.key_code] += {.Pressed}
 		}
 		key_states[event.key_code] -= {.Down}
+	case .MOUSE_MOVE:
+		mouse.position = {event.mouse_x, event.mouse_y}
+		mouse.change = {event.mouse_dx, event.mouse_dy}
 	}
 }
 
@@ -27,6 +34,10 @@ update_keys_states :: proc() {
 	for &i in key_states {
 		i -= {.Pressed}
 	}
+}
+
+update_mouse :: proc() {
+	mouse.change = {}
 }
 
 is_key_down :: proc(key: skl_app.Keycode) -> bool {

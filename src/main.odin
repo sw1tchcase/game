@@ -64,10 +64,22 @@ frame :: proc "c" () {
 	@(static)
 	cam_roatation: f32 = 0
 
-	if is_key_down(.W) do set_position_camera(camera.position - {0, 0, 0.1})
-	if is_key_down(.A) do set_position_camera(camera.position - {0.1, 0, 0})
-	if is_key_down(.S) do set_position_camera(camera.position + {0, 0, 0.1})
-	if is_key_down(.D) do set_position_camera(camera.position + {0.1, 0, 0})
+	cam_roatation += mouse.change.x / 10
+
+	if is_key_down(.W) do set_position_camera(camera.position + 0.1 * {math.cos_f32(cam_roatation), 0, math.sin_f32(cam_roatation)})
+	if is_key_down(.A) do set_position_camera(camera.position - 0.1 * {math.cos_f32(cam_roatation + math.PI / 2), 0, math.sin_f32(cam_roatation + math.PI / 2)})
+	if is_key_down(.S) do set_position_camera(camera.position - 0.1 * {math.cos_f32(cam_roatation), 0, math.sin_f32(cam_roatation)})
+	if is_key_down(.D) do set_position_camera(camera.position + 0.1 * {math.cos_f32(cam_roatation + math.PI / 2), 0, math.sin_f32(cam_roatation + math.PI / 2)})
+
+
+	set_target_camera(
+		camera.position + {math.cos_f32(cam_roatation), 0, math.sin_f32(cam_roatation)},
+	)
+
+	update_keys_states()
+	update_mouse()
+
+	//fmt.println(mouse.change)
 
 	update_camera()
 	uniform.mvp = camera.projection * camera.view
